@@ -9,6 +9,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.wellsql.generated.SuperHeroTable;
 import com.yarolegovich.wellsql.SelectQuery;
+import com.yarolegovich.wellsql.SelectQuery.Callback;
 import com.yarolegovich.wellsql.WellCursor;
 import com.yarolegovich.wellsql.WellSql;
 import com.yarolegovich.wellsql.mapper.InsertMapper;
@@ -194,6 +195,19 @@ public class WellSqlTest {
             counter++;
         }
         assertEquals(getHeroes().size(), counter);
+    }
+
+    @Test
+    public void rawSqlQueryWorks() {
+        WellSql.insert(getVillains()).execute();
+        WellSql.select(Villain.class).rawQuery("SELECT _id FROM Villain")
+                .getAsModelAsync(new Callback<List<Villain>>() {
+            @Override
+            public void onDataReady(List<Villain> data) {
+                assertTrue(Thread.currentThread() == Looper.getMainLooper().getThread());
+                assertEquals(getVillains().size(), data.size());
+            }
+        });
     }
 
     private List<SuperHero> getHeroes() {

@@ -11,7 +11,6 @@ import android.text.TextUtils;
 
 import com.yarolegovich.wellsql.core.Identifiable;
 import com.yarolegovich.wellsql.core.TableClass;
-import com.yarolegovich.wellsql.mapper.SQLiteMapper;
 import com.yarolegovich.wellsql.mapper.SelectMapper;
 
 import java.lang.annotation.ElementType;
@@ -48,6 +47,8 @@ public class SelectQuery<T extends Identifiable> implements ConditionClauseConsu
 
     private String mSelection;
     private String[] mSelectionArgs;
+
+    private String mRawQuery;
 
     private SQLiteQueryBuilder mSQLiteQueryBuilder = new SQLiteQueryBuilder();
 
@@ -185,14 +186,24 @@ public class SelectQuery<T extends Identifiable> implements ConditionClauseConsu
     }
 
     private Cursor execute() {
-        return mSQLiteQueryBuilder.query(mDb,
-                mProjection,
-                mSelection,
-                mSelectionArgs,
-                mGroupBy, mHaving,
-                mSortOrder,
-                mLimit);
+        if (mRawQuery != null) {
+            return mDb.rawQuery(mRawQuery, mSelectionArgs);
+        } else {
+            return mSQLiteQueryBuilder.query(mDb,
+                    mProjection,
+                    mSelection,
+                    mSelectionArgs,
+                    mGroupBy, mHaving,
+                    mSortOrder,
+                    mLimit);
+        }
     }
+
+    public SelectQuery<T> rawQuery(String rawQuery) {
+        mRawQuery = rawQuery;
+        return this;
+    }
+
 
     @Override
     public void acceptClause(String where) {
